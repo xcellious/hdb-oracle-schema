@@ -339,6 +339,7 @@ echo "/" >> "$OUT_DIR/V1_0_9__HDB_Permissions.sql"
 echo "BEGIN EXECUTE IMMEDIATE 'CREATE OR REPLACE PUBLIC SYNONYM role_psswd FOR psswd_user.role_psswd'; EXCEPTION WHEN OTHERS THEN NULL; END;" >> "$OUT_DIR/V1_0_9__HDB_Permissions.sql"
 echo "/" >> "$OUT_DIR/V1_0_9__HDB_Permissions.sql"
 echo "BEGIN EXECUTE IMMEDIATE 'GRANT EXECUTE ON psswd_user.check_valid_role_name TO \${hdb_user}'; EXCEPTION WHEN OTHERS THEN NULL; END;" >> "$OUT_DIR/V1_0_9__HDB_Permissions.sql"
+
 echo "/" >> "$OUT_DIR/V1_0_9__HDB_Permissions.sql"
 
 # V1_0_10: HDB Metadata
