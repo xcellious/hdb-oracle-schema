@@ -24,15 +24,25 @@ This installation process is fully compatible with Linux environments (including
 
 ### Configuration
 
-Edit the `flyway_migration/conf/flyway.conf` file to point to your specific Oracle database instance:
+Configuration is centralized in an environment file (`.env`) to prevent committing sensitive credentials.
 
-```properties
-flyway.url=jdbc:oracle:thin:@//<host>:<port>/<service_name>
-flyway.user=<your_admin_user>
-flyway.password=<your_admin_password>
-# Enable mixed mode for Oracle recompilation PL/SQL blocks
-flyway.oracle.sqlplus=true
-```
+1.  Copy the provided template to create your `.env` file:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Edit `.env` to match your Oracle environment:
+    ```properties
+    FLYWAY_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+    FLYWAY_USER=sys
+    FLYWAY_PASSWORD=your_admin_password
+    FLYWAY_PLACEHOLDERS_HDB_USER=HDBDBA
+    FLYWAY_PLACEHOLDERS_HDB_PASSWORD=your_hdb_password
+    ```
+
+### Running Migrations
+To ensure the environment variables are loaded correctly, use the provided wrapper scripts:
+- **Windows**: `run_flyway.bat migrate`
+- **Linux/WSL**: `./run_flyway.sh migrate`
 
 ### Tablespace Assumptions
 
@@ -48,19 +58,14 @@ The Oracle environment must be pre-provisioned with the underlying tablespaces r
 Some database objects may remain in an `INVALID` state after migration if specific environmental dependencies are missing:
 
 *   **`UTL_MAIL` Package**: The `SENDMAIL` function depends on the Oracle `UTL_MAIL` package. This package is often not installed by default (especially in Oracle Free/Express editions). To resolve invalidity, grant execute on `UTL_MAIL` to `${hdb_user}` after installing the package.
-*   **Database Links**: The `SNAPSHOT_MANAGER` package body references several external database links (e.g., `LCHDB`, `YAOHDB`). These will fail to compile unless the corresponding private or public database links are created in your environment.
+*   **Database Links**: The `SNAPSHOT_MANAGER` package body references several external database links. These will fail to compile unless the corresponding private or public database links are created in your environment.
 
 
 ## Database Cleanup (Teardown)
 
 When maintaining a local development environment, you may need to completely wipe the database to start fresh. Instead of dropping individual objects, the cleanest approach is to drop the entire schemas and any associated public objects.
 
-1.  **Flyway Clean**: You can use Flyway's built-in clean command, which drops all objects, tables, and privileges owned by the schemas managed by Flyway:
-    ```bash
-    flyway -configFiles="flyway_migration/conf/flyway.conf" clean
-    ```
-
-2. **Complete Environment Reset (Recommended)**: If you are in a local environment and wish to easily and thoroughly wipe the main `HDBDBA` schema, the `DECODES` schema, the `CP_PROCESS` schema, the application users, and all related roles/synonyms, you can run the comprehensive drop script:
+ **Complete Environment Reset (Recommended)**: If you are in a local environment and wish to easily and thoroughly wipe the main `HDBDBA` schema, the `DECODES` schema, the `CP_PROCESS` schema, the application users, and all related roles/synonyms, you can run the comprehensive drop script:
     ```sql
     -- Connect as a SYSDBA user
     @drop_everything.sql
