@@ -21739,5 +21739,5 @@ end;
 /
 -- show errors trigger unit_chk_val_spec;
 /
--- WARNING: Could not find file /mnt/c/Users/ozdem/Desktop/HDB-Antigravity/oracle_script/SCHEMA/BASE_SCRIPTS/view.ddl
--- WARNING: Could not find file /mnt/c/Users/ozdem/Desktop/HDB-Antigravity/oracle_script/SCHEMA/BASE_SCRIPTS/trigger.ddl
+-- NOTE: view.ddl and trigger.ddl were not found in the source tree during build.
+-- These files may have been consolidated into other scripts.
