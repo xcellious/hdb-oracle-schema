@@ -133,7 +133,7 @@ grant select on DBA.r_wy to public;
 grant select on DBA.r_wystat to public;
 grant select on DBA.r_year to public;
 grant select on DBA.r_yearstat to public;
-/*   Missing grants added on 09/2015
+/*   Missing grants added on 09/2015  */
 grant select on DBA.V_HDB_SITE_DATATYPE_NAME to public;
 grant select on DBA.HDB_DATATYPE_UNIT to public;
 grant select on DBA.DAYS to public;
@@ -141,8 +141,10 @@ grant select on DBA.dba_roles to public;
 GRANT SELECT ON DBA.HDB_SITE_ARCHIVE to PUBLIC;
 GRANT SELECT ON DBA.HDB_DATATYPE_ARCHIVE to PUBLIC;
 GRANT SELECT ON DBA.HDB_SITE_DATATYPE_ARCHIVE to PUBLIC;
+/*   Missing grants added on 03/2026  */
+GRANT SELECT ON DBA.REF_LEGEND TO PUBLIC;
+grant EXECUTE on DBA.IS_ROLE_GRANTED to PUBLIC;
 
- */
 spool off
 exit;
 

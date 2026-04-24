@@ -176,56 +176,87 @@ end;
 /
 show errors trigger r_base_after_insert;
 
+CREATE OR REPLACE TRIGGER r_base_after_update
+AFTER UPDATE ON r_base
+FOR EACH ROW
+DECLARE
+    v_change_agent_id NUMBER;
+BEGIN
+    -- Lookup or insert into change_agent table
+    BEGIN
+        SELECT id INTO v_change_agent_id
+        FROM ref_change_agent
+        WHERE session_user = COALESCE(SYS_CONTEXT('APEX$SESSION', 'APP_USER'),SYS_CONTEXT('USERENV', 'SESSION_USER'))
+          AND client_identifier = COALESCE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'UNKNOWN_CLIENT_IDENTIFIER') 
+          AND os_user = SYS_CONTEXT('USERENV', 'OS_USER')
+          AND host = SYS_CONTEXT('USERENV', 'HOST')
+          AND client_program_name = SYS_CONTEXT('USERENV', 'MODULE')
+        FETCH FIRST ROW ONLY;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            INSERT INTO ref_change_agent (
+                session_user,
+                client_identifier,
+                os_user,
+                host,
+                client_program_name
+            )
+            VALUES (
+                COALESCE(SYS_CONTEXT('APEX$SESSION', 'APP_USER'),SYS_CONTEXT('USERENV', 'SESSION_USER')),
+                COALESCE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'UNKNOWN_CLIENT_IDENTIFIER'),
+                SYS_CONTEXT('USERENV', 'OS_USER'),
+                SYS_CONTEXT('USERENV', 'HOST'),
+                SYS_CONTEXT('USERENV', 'MODULE')
+            )
+            RETURNING id INTO v_change_agent_id;
+    END;
 
-create or replace trigger r_base_after_update
-after update on r_base
-for each row
-declare
-  v_count            number;
-begin
-
--- archive the row that was changed
-  insert into r_base_archive
-    (site_datatype_id,
-     interval,
-     start_date_time,
-     end_date_time,
-     value,
-     agen_id,
-     overwrite_flag,
-     date_time_loaded,
-     validation,
-     collection_system_id,
-     loading_application_id,
-     method_id,
-     computation_id,
-     archive_reason,
-     date_time_archived,
-     data_flags)
-  values
-    (:old.site_datatype_id,
-     :old.interval,
-     :old.start_date_time,
-     :old.end_date_time,
-     :old.value,
-     :old.agen_id,
-     :old.overwrite_flag,
-     :old.date_time_loaded,
-     :old.validation,
-     :old.collection_system_id,
-     :old.loading_application_id,
-     :old.method_id,
-     :old.computation_id,
-     'UPDATE',
-     sysdate,
-     :old.data_flags
-     );
+    -- Archive the row that was changed
+    INSERT INTO r_base_archive (
+        site_datatype_id,
+        interval,
+        start_date_time,
+        end_date_time,
+        value,
+        agen_id,
+        overwrite_flag,
+        date_time_loaded,
+        validation,
+        collection_system_id,
+        loading_application_id,
+        method_id,
+        computation_id,
+        archive_reason,
+        date_time_archived,
+        data_flags,
+        change_agent_id
+    )
+    VALUES (
+        :old.site_datatype_id,
+        :old.interval,
+        :old.start_date_time,
+        :old.end_date_time,
+        :old.value,
+        :old.agen_id,
+        :old.overwrite_flag,
+        :old.date_time_loaded,
+        :old.validation,
+        :old.collection_system_id,
+        :old.loading_application_id,
+        :old.method_id,
+        :old.computation_id,
+        'UPDATE',
+        SYSDATE,
+        :old.data_flags,
+        v_change_agent_id
+    );
+     
 -- removed overwrite flag logic August 2007 by M. Bogner due to HDB committee decision
 -- removed validation logic March 2008 by M. Bogner due to HDB committee decision
 -- As of March 2008 only keep data from being merged if it has an F (failed) validation
 
---  if nvl(:new.validation,'F') not in ('F','Z') or :new.overwrite_flag='O' then 
---  if nvl(:new.validation,'F') not in ('F','Z') then 
+--  if nvl(:new.validation,'F') not in ('F','Z') or :new.overwrite_flag='O' then
+--  if nvl(:new.validation,'F') not in ('F','Z') then
 --    select count(*) into v_count from ref_interval_copy_limits
 --      where :new.site_datatype_id=site_datatype_id
 --        and :new.interval=interval;
@@ -239,10 +270,10 @@ begin
             :new.end_date_time,
             :new.value,
             :new.validation,
-            :new.overwrite_flag, 
+            :new.overwrite_flag,
             :new.method_id,
-            :new.data_flags,  
-            :new.date_time_loaded   
+            :new.data_flags,
+            :new.date_time_loaded
            );
       end if;
 end;
@@ -264,57 +295,86 @@ end;
 /
 show errors trigger r_base_before_delete;
 
+CREATE OR REPLACE TRIGGER r_base_after_delete
+AFTER DELETE ON r_base
+FOR EACH ROW
+DECLARE
+    v_change_agent_id NUMBER;
+BEGIN
+    -- Lookup or insert into change_agent table
+    BEGIN
+        SELECT id INTO v_change_agent_id
+        FROM ref_change_agent
+        WHERE session_user = COALESCE(SYS_CONTEXT('APEX$SESSION', 'APP_USER'),SYS_CONTEXT('USERENV', 'SESSION_USER'))
+          AND client_identifier = COALESCE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'UNKNOWN_CLIENT_IDENTIFIER') 
+          AND os_user = SYS_CONTEXT('USERENV', 'OS_USER')
+          AND host = SYS_CONTEXT('USERENV', 'HOST')
+          AND client_program_name = SYS_CONTEXT('USERENV', 'MODULE')
+        FETCH FIRST ROW ONLY;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            INSERT INTO ref_change_agent (
+                session_user,
+                client_identifier,
+                os_user,
+                host,
+                client_program_name
+                
+            )
+            VALUES (
+                COALESCE(SYS_CONTEXT('APEX$SESSION', 'APP_USER'),SYS_CONTEXT('USERENV', 'SESSION_USER')),
+                COALESCE(SYS_CONTEXT('USERENV', 'CLIENT_IDENTIFIER'), 'UNKNOWN_CLIENT_IDENTIFIER'),
+                SYS_CONTEXT('USERENV', 'OS_USER'),
+                SYS_CONTEXT('USERENV', 'HOST'),
+                SYS_CONTEXT('USERENV', 'MODULE')
+            )
+            RETURNING id INTO v_change_agent_id;
+    END;
 
-create or replace trigger r_base_after_delete
-after delete on r_base
-for each row
-declare
-  v_count              number;
-  mod_start_date_time  date;
-  mod_end_date_time    date;
-  window_indicator     boolean;
-begin
-
--- archive the row that was deleted
-  insert into r_base_archive
-    (site_datatype_id,
-     interval,
-     start_date_time,
-     end_date_time,
-     value,
-     agen_id,
-     overwrite_flag,
-     date_time_loaded,
-     validation,
-     collection_system_id,
-     loading_application_id,
-     method_id,
-     computation_id,
-     archive_reason,
-     date_time_archived,
-     data_flags)
-  values
-    (:old.site_datatype_id,
-     :old.interval,
-     :old.start_date_time,
-     :old.end_date_time,
-     :old.value,
-     :old.agen_id,
-     :old.overwrite_flag,
-     :old.date_time_loaded,
-     :old.validation,
-     :old.collection_system_id,
-     :old.loading_application_id,
-     :old.method_id,
-     :old.computation_id,
-     'DELETE',
-     sysdate,
-     :old.data_flags);
+    -- Insert into r_base_archive with change_agent_id
+    INSERT INTO r_base_archive (
+        site_datatype_id,
+        interval,
+        start_date_time,
+        end_date_time,
+        value,
+        agen_id,
+        overwrite_flag,
+        date_time_loaded,
+        validation,
+        collection_system_id,
+        loading_application_id,
+        method_id,
+        computation_id,
+        archive_reason,
+        date_time_archived,
+        data_flags,
+        change_agent_id
+    )
+    VALUES (
+        :old.site_datatype_id,
+        :old.interval,
+        :old.start_date_time,
+        :old.end_date_time,
+        :old.value,
+        :old.agen_id,
+        :old.overwrite_flag,
+        :old.date_time_loaded,
+        :old.validation,
+        :old.collection_system_id,
+        :old.loading_application_id,
+        :old.method_id,
+        :old.computation_id,
+        'DELETE',
+        SYSDATE,
+        :old.data_flags,
+        v_change_agent_id
+    );
 
 
 /*  now delete from the interval table if it exists  the thought was just try the delete
     if it works then OK otherwise a query to do the count and then do the delete seems
-    to do twice the amount of work   
+    to do twice the amount of work
 
 */
 --  modified the delete August 2007 by M.  Bogner to delete regardless of date_time_loaded
@@ -330,5 +390,6 @@ begin
 
 end;
 /
+
 show errors trigger r_base_after_delete;
 /

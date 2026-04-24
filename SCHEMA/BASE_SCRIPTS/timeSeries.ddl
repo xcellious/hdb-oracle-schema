@@ -242,8 +242,11 @@ create table r_base_archive
     computation_id               number,
     archive_reason               varchar2(10) not null,
     date_time_archived           date not null,
-    data_flags                   varchar2(20)
+    data_flags                   varchar2(20),
+    CHANGE_AGENT_ID              NUMBER 
    );
+
+ALTER TABLE r_base_archive ADD CONSTRAINT fk_ref_change_agent FOREIGN KEY (change_agent_id) REFERENCES ref_change_agent(id);
 
 create index r_base_archive_idx
 on r_base_archive(site_datatype_id,interval,start_date_time,end_date_time)

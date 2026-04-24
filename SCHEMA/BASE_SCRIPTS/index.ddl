@@ -52,6 +52,9 @@ tablespace hdb_idx
 storage(initial 64k next 100k pctincrease 0)   
 ;
 
+CREATE UNIQUE INDEX idx_ref_change_agent_lookup ON ref_change_agent (
+    session_user, client_identifier, os_user, host, client_program_name
+);
 
 spool off
 exit;

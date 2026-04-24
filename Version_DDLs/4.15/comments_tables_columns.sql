@@ -41,7 +41,7 @@ comment on table HDB_FEATURE is 'Holds features that are used extensively in rep
 comment on table HDB_FEATURE_CLASS is 'Holds feature classes that are used extensively in representing Consumptive Uses and Losses data like crops, livestock, etc.';
 comment on table HDB_FEATURE_PROPERTY is 'Holds feature properties, connects features with properties and assigns values to the properties. Used extensively in representing Consumptive Uses and Losses data like crops, livestock, etc.';
 comment on table HDB_GAGETYPE is 'Holds gage types.';
-comment on table HDB_INTERVAL is 'Holds intervals used in hdb – instant, hour, day, etc.';
+comment on table HDB_INTERVAL is 'Holds intervals used in hdb   instant, hour, day, etc.';
 comment on table HDB_LOADING_APPLICATION is 'Holds the valid loading applications. Loading application id is required in r_base table.';
 comment on table HDB_METHOD is 'Holds the method by which time series data is computed, if applicable. ';
 comment on table HDB_METHOD_CLASS is 'Holds method classes. Higher level of method, one must be assigned to each method in hdb_method. ';
@@ -143,7 +143,7 @@ comment on table REF_RATING is 'Holds the actual rating table information for a 
 comment on table REF_RATING_ARCHIVE is 'Archive table of REF_RATING.';
 comment on table REF_REFRESH_MONITOR is 'Holds status of a refresh for non-czar tables.';
 comment on table REF_RATING_TABLE is 'Describes the rating. Description for the rating table defined by all rows in ref_rating with that rating_id. ';
-comment on table REF_RES is 'Holds reservoir and dam information.Table is mostly empty – use table ref_site_attr instead.';
+comment on table REF_RES is 'Holds reservoir and dam information.Table is mostly empty   use table ref_site_attr instead.';
 comment on table REF_RES_FLOWLU is 'Obsolete';
 comment on table REF_RES_WSELU is 'Obsolete';
 comment on table REF_SITE_ATTR is 'Holds values for attributes defined in hdb_attr and connects attributes to sites.';
@@ -263,7 +263,8 @@ comment on table TSDB_GROUP_MEMBER_OTHER is 'Timeseries group members defined by
 comment on table TSDB_GROUP_MEMBER_SITE is 'Timeseries group members defined by site_id.';
 comment on table TSDB_GROUP_MEMBER_TS is 'Timeseries group members defined by specific cp_ts_ids.';
 comment on table TSDB_PROPERTY is 'Holds OPENDCS Global properties on the database components and HDB version.';
-
+COMMENT ON TABLE REF_CHANGE_AGENT  IS 'Logs session and client metadata for auditing changes, allowing traceability of who made modifications to R_BASE.';
+comment on table REF_LEGEND is 'Stores the colors and descriptions of legends.';
 
 --For UC only. Other databases will expect to fail. 
 comment on table REF_HDB_INSTALLATION is 'Used in master czar database only and holds list of db_site names that require refreshes. Referenced in refresh_phys_quan_snap_wrap_ap and ref_phys_quan_refresh_monitor.';

@@ -244,6 +244,14 @@ grep ERROR set_decodes_privs.out
 
 
 
+# Generate comments on tables and columns
+echo "Accessing as $dba_name user for comments.sql"
+sqlplus $dba_name/$passwd  @./SCHEMA/comments.sql
+grep ERROR comments.out
+
+
+
+
 # Create czar syns
 if test $is_slave != y 
 then

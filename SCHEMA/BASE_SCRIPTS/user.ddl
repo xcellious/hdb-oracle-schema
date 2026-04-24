@@ -11,6 +11,7 @@ temporary tablespace HDB_temp;
 grant sysdba to DBA;
 grant dba to DBA;
 grant savoir_faire to DBA;
+grant decodes_role to DBA;
 grant create session to DBA;
 grant connect  to DBA;
 alter user DBA default role all;
