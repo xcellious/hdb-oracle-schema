@@ -403,6 +403,23 @@ CREATE OR REPLACE PACKAGE BODY HDB_UTILITIES AS
 
 	End;  /* end of Function GET_DB_PARAMETER  */
 
+
+-- Function to mask nesdis password in lrgs datasource argument fields
+
+FUNCTION mask_nesdis_password (arg IN VARCHAR2) 
+  RETURN VARCHAR2 
+IS
+    new_arg VARCHAR2(400);
+BEGIN
+    new_arg := REGEXP_REPLACE(
+                  arg,
+                  '(password=)([^,]+)',
+                  '\1' || 'masked-nesd-ISX9-99-password'
+               );
+
+    RETURN new_arg;
+END;   /* end of Function mask_nesdis_password  */
+
 PROCEDURE standardize_dates(
     SITE_DATATYPE_ID NUMBER,
     INTERVAL         VARCHAR2,

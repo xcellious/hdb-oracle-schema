@@ -10,6 +10,7 @@ create or replace package HDB_UTILITIES as
     Modified May 2012 by M. Bogner to fix  validation and overwrite flag bug not working in other time zone
     Modified July 2012 by M. Bogner  to add requirement for CP to store all data_time loaded values in same TZ
     Modified Feb 2016 by Ismail Ozdemir  to add RE_CALCULATE_ALGORITHM Procedure
+    Modified Mar 2026 by Ismail Ozdemir  to add mask_nesdis_password Function
 */
 
 /*  DECLARE ALL GLOBAL variables  */
@@ -32,6 +33,8 @@ create or replace package HDB_UTILITIES as
   FUNCTION IS_DATE_IN_DST(P_DATE IN DATE,p_DST_ZONE IN VARCHAR2,p_default_zone IN VARCHAR2) RETURN VARCHAR2;
   FUNCTION MOD_DATE_FOR_TIME_ZONE(P_DATE IN DATE, P_TIME_ZONE IN VARCHAR2) RETURN DATE;
   FUNCTION GET_DB_PARAMETER (P_PARAMETER IN VARCHAR2) RETURN VARCHAR2;	
+  -- Function to mask nesdis password in lrgs datasource argument fields
+  FUNCTION mask_nesdis_password (arg IN VARCHAR2) RETURN VARCHAR2;
   
   PROCEDURE STANDARDIZE_DATES(SITE_DATATYPE_ID NUMBER, INTERVAL VARCHAR2, START_DATE_TIME  IN OUT DATE,
     END_DATE_TIME    IN OUT DATE);
