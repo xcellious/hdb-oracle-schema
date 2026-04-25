@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BASE_DIR="/mnt/c/Users/ozdem/Desktop/HDB-Antigravity/oracle_script"
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="$BASE_DIR/flyway_migration/sql/base"
 
 shopt -s nocasematch
