@@ -265,5 +265,15 @@ cat << 'EOF' >> "$OUT_DIR/V1_0_3__Base_Indexes_and_Keys.sql"
 GRANT REFERENCES ON ${hdb_user}.HDB_LOADING_APPLICATION TO decodes;
 EOF
 
+# V1_0_4: CP Metadata
+echo "ALTER SESSION SET CURRENT_SCHEMA = \${hdb_user};" > "$OUT_DIR/V1_0_4__CP_Metadata.sql"
+expand_sql "$BASE_DIR/SCHEMA/BASE_SCRIPTS/createCompMetaData-oracle.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_4__CP_Metadata.sql"
+
+# V1_0_5: Decodes
+echo "ALTER SESSION SET CURRENT_SCHEMA = decodes;" > "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
+expand_sql "$BASE_DIR/SCHEMA/BASE_SCRIPTS/createORACLEDecodes.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_hdb_references | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
+expand_sql "$BASE_DIR/SEQUENCES/createORACLEDecodesSequences.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_hdb_references | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
+# Apply Decodes privileges early to support V1_0_6 views
+expand_sql "$BASE_DIR/SCHEMA/BASE_SCRIPTS/set_decodes_privs.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
 
 echo "Build complete."
