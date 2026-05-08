@@ -1049,8 +1049,8 @@ BEGIN
 
 -- this line will add any datatypes that may have been recently created
     insert into datatype
-    select datatype_id,'HDB',datatype_id from hdb_datatype 
-    minus select id,standard,id from datatype where standard = 'HDB';
+    select datatype_id,'HDB',datatype_id,null from hdb_datatype 
+    minus select id,standard,id,null from datatype where standard = 'HDB';
 
     exception when others then DENY_ACTION ('Daily Operations Procedure Failed' );
 
