@@ -33,11 +33,33 @@ Configuration is centralized in an environment file (`.env`) to prevent committi
 2.  Edit `.env` to match your Oracle environment:
     ```properties
     FLYWAY_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
-    FLYWAY_USER=sys
+    FLYWAY_USER=flyway_admin
     FLYWAY_PASSWORD=your_admin_password
     FLYWAY_PLACEHOLDERS_HDB_USER=HDBDBA
     FLYWAY_PLACEHOLDERS_HDB_PASSWORD=your_hdb_password
     ```
+
+> **Note**: Flyway Community Edition cannot connect as `SYSDBA`. You must create a dedicated `flyway_admin` user with DBA privileges instead of using `SYS`. See the **First-Time Setup** section below.
+
+### First-Time Setup
+
+Before running Flyway for the first time, connect as `SYSDBA` and create the `flyway_admin` user:
+
+```sql
+-- Connect as SYSDBA (e.g., via Docker)
+-- docker exec -i <container> sqlplus 'sys/<password>@//localhost:1521/FREEPDB1 as sysdba'
+
+CREATE USER flyway_admin IDENTIFIED BY <your_password>;
+GRANT DBA TO flyway_admin;
+GRANT CREATE SESSION TO flyway_admin;
+ALTER USER flyway_admin QUOTA UNLIMITED ON USERS;
+```
+
+Then run the pre-grants script to grant SYS-owned object privileges that only SYSDBA can issue:
+
+```bash
+docker exec -i <container> sqlplus 'sys/<password>@//localhost:1521/FREEPDB1 as sysdba' < pre_grants.sql
+```
 
 ### Running Migrations
 To ensure the environment variables are loaded correctly, use the provided wrapper scripts:
@@ -65,8 +87,23 @@ Some database objects may remain in an `INVALID` state after migration if specif
 
 When maintaining a local development environment, you may need to completely wipe the database to start fresh. Instead of dropping individual objects, the cleanest approach is to drop the entire schemas and any associated public objects.
 
- **Complete Environment Reset (Recommended)**: If you are in a local environment and wish to easily and thoroughly wipe the main `HDBDBA` schema, the `DECODES` schema, the `CP_PROCESS` schema, the application users, and all related roles/synonyms, you can run the comprehensive drop script:
-    ```sql
-    -- Connect as a SYSDBA user
-    @flyway_drop_everything.sql
+### Full Drop and Rebuild
+
+1.  **Drop everything** — connect as SYSDBA and run the drop script:
+    ```bash
+    docker exec -i <container> sqlplus 'sys/<password>@//localhost:1521/FREEPDB1 as sysdba' < flyway_drop_everything.sql
+    ```
+
+2.  **Re-run pre-grants** (required after drop since target users were removed):
+    ```bash
+    docker exec -i <container> sqlplus 'sys/<password>@//localhost:1521/FREEPDB1 as sysdba' < pre_grants.sql
+    ```
+
+3.  **Run Flyway migrate** to rebuild from scratch:
+    ```bash
+    # Linux/WSL
+    ./run_flyway.sh migrate
+
+    # Windows
+    run_flyway.bat migrate
     ```
