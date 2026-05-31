@@ -68,5 +68,5 @@ When maintaining a local development environment, you may need to completely wip
  **Complete Environment Reset (Recommended)**: If you are in a local environment and wish to easily and thoroughly wipe the main `HDBDBA` schema, the `DECODES` schema, the `CP_PROCESS` schema, the application users, and all related roles/synonyms, you can run the comprehensive drop script:
     ```sql
     -- Connect as a SYSDBA user
-    @drop_everything.sql
+    @flyway_drop_everything.sql
     ```
