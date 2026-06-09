@@ -1,17 +1,16 @@
 BEGIN
   -- 1. Drop Users and all their schema objects
-  FOR u IN (SELECT username FROM dba_users WHERE username IN ('HDBDBA', 'DECODES', 'CP_PROCESS', 'APP_USER', 'PSSWD_USER', 'CZAR_USER', 'META_DATA_USER')) LOOP
+  FOR u IN (SELECT username FROM dba_users WHERE username IN ('HDBDBA', 'DECODES', 'CP_PROCESS', 'APP_USER', 'PSSWD_USER')) LOOP
     EXECUTE IMMEDIATE 'DROP USER ' || u.username || ' CASCADE';
   END LOOP;
   
   -- 2. Drop Roles
-  FOR r IN (SELECT role FROM dba_roles WHERE role IN ('APP_ROLE', 'HDB_META_ROLE', 'REF_META_ROLE', 'MONTHLY', 'SAVOIR_FAIRE', 'MODEL_PRIV_ROLE', 'DECODES_ROLE', 'CALC_DEFINITION_ROLE')) LOOP
+  FOR r IN (SELECT role FROM dba_roles WHERE role IN ('APP_ROLE', 'HDB_META_ROLE', 'REF_META_ROLE', 'MONTHLY', 'SAVOIR_FAIRE', 'MODEL_PRIV_ROLE', 'DECODES_ROLE', 'CALC_DEFINITION_ROLE', 'CZAR_ROLE')) LOOP
     EXECUTE IMMEDIATE 'DROP ROLE ' || r.role;
   END LOOP;
 
   -- 3. Drop Public Synonyms pointing to our dropped schemas
-  -- This safely finds and drops any lingering public synonyms that point to tables/objects in HDBDBA, DECODES, CP_PROCESS, APP_USER, or PSSWD_USER
-  FOR s IN (SELECT synonym_name FROM dba_synonyms WHERE owner = 'PUBLIC' AND table_owner IN ('HDBDBA', 'DECODES', 'CP_PROCESS', 'APP_USER', 'PSSWD_USER', 'CZAR_USER', 'META_DATA_USER')) LOOP
+  FOR s IN (SELECT synonym_name FROM dba_synonyms WHERE owner = 'PUBLIC' AND table_owner IN ('HDBDBA', 'DECODES', 'CP_PROCESS', 'APP_USER', 'PSSWD_USER')) LOOP
     EXECUTE IMMEDIATE 'DROP PUBLIC SYNONYM ' || s.synonym_name;
   END LOOP;
 
