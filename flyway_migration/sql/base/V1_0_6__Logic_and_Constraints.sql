@@ -1603,7 +1603,7 @@ BEGIN
 
 -- this line will add any datatypes that may have been recently created
     insert into datatype
-    (id, standard, code) select datatype_id,'HDB',datatype_id,null from hdb_datatype 
+    select datatype_id,'HDB',datatype_id,null from hdb_datatype 
     minus select id,standard,id,null from datatype where standard = 'HDB';
 
     exception when others then DENY_ACTION ('Daily Operations Procedure Failed' );
@@ -16454,8 +16454,8 @@ BEGIN
        
        /* insert record into decodes.datatype table if record does not exist  */
        insert into datatype
-       select :new.datatype_id,'HDB',:new.datatype_id from dual 
-       minus select id,standard,id from datatype where standard = 'HDB';
+       select :new.datatype_id,'HDB',:new.datatype_id,null from dual 
+       minus select id,standard,id,null from datatype where standard = 'HDB';
 
     ELSIF updating THEN 
      :new.DATATYPE_ID := :old.DATATYPE_ID; 
@@ -21759,5 +21759,5 @@ end;
 /
 -- show errors trigger unit_chk_val_spec;
 /
--- WARNING: Could not find file /mnt/c/Users/ozdem/Desktop/Repos/hdb-oracle-schema/SCHEMA/BASE_SCRIPTS/view.ddl
--- WARNING: Could not find file /mnt/c/Users/ozdem/Desktop/Repos/hdb-oracle-schema/SCHEMA/BASE_SCRIPTS/trigger.ddl
+-- WARNING: Could not find file /c/Users/ozdem/Desktop/Repos/hdb-oracle-schema/SCHEMA/BASE_SCRIPTS/view.ddl
+-- WARNING: Could not find file /c/Users/ozdem/Desktop/Repos/hdb-oracle-schema/SCHEMA/BASE_SCRIPTS/trigger.ddl

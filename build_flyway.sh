@@ -9,9 +9,10 @@ shopt -s nocasematch
 mkdir -p "$OUT_DIR"
 rm -f "$OUT_DIR"/*.sql
 
-# Fix legacy DATATYPE insert statements that miss column names
+# fix_legacy_datatype_insert removed — DATATYPE table now has 4 columns
+# (id, standard, code, display_name) and source files provide 4-value SELECTs
 fix_legacy_datatype_insert() {
-    perl -0777 -pe 's/(insert\s+into\s+datatype\s+)(select)/$1(id, standard, code) $2/gis'
+    cat
 }
 
 # Expand SQL and handle SQL*Plus commands
@@ -275,6 +276,13 @@ expand_sql "$BASE_DIR/SCHEMA/BASE_SCRIPTS/createORACLEDecodes.sql" | placeholder
 expand_sql "$BASE_DIR/SEQUENCES/createORACLEDecodesSequences.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_hdb_references | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
 # Apply Decodes privileges early to support V1_0_6 views
 expand_sql "$BASE_DIR/SCHEMA/BASE_SCRIPTS/set_decodes_privs.sql" | placeholder_replace | remove_version_table_creation | wrap_safe_sql | convert_synonym_idempotent | fix_sqlplus_terminators >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
+# Direct grants needed for definer's rights PL/SQL (triggers/packages can't use role-based privileges)
+cat << 'EOF' >> "$OUT_DIR/V1_0_5__Create_Decodes_Schema.sql"
+-- Direct grants to ${hdb_user} for DECODES tables referenced in triggers/packages.
+-- Oracle definer's rights PL/SQL ignores role-based privileges (ORA-01031),
+-- so HDBDBA needs direct grants in addition to DECODES_ROLE.
+GRANT SELECT, INSERT ON decodes.DATATYPE TO ${hdb_user};
+EOF
 
 # V1_0_6: Logic, Routines, Constraints and Triggers
 echo "ALTER SESSION SET CURRENT_SCHEMA = \${hdb_user};" > "$OUT_DIR/V1_0_6__Logic_and_Constraints.sql"

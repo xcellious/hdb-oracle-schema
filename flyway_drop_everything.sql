@@ -19,9 +19,9 @@ BEGIN
   --   EXECUTE IMMEDIATE 'DROP PUBLIC DATABASE LINK ' || l.db_link;
   -- END LOOP;
   
-  -- 5. Drop Flyway history if it exists
-  FOR t IN (SELECT table_name FROM dba_tables WHERE owner = 'SYS' AND table_name = 'FLYWAY_SCHEMA_HISTORY') LOOP
-    EXECUTE IMMEDIATE 'DROP TABLE SYS.FLYWAY_SCHEMA_HISTORY CASCADE CONSTRAINTS';
+  -- 5. Drop Flyway history if it exists (Flyway creates it as a lowercase quoted identifier)
+  FOR t IN (SELECT table_name FROM dba_tables WHERE owner = 'SYS' AND UPPER(table_name) = 'FLYWAY_SCHEMA_HISTORY') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE SYS."' || t.table_name || '" CASCADE CONSTRAINTS';
   END LOOP;
 END;
 /

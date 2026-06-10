@@ -1391,3 +1391,7 @@ BEGIN EXECUTE IMMEDIATE 'grant select, insert, update, delete on decodes.ENUMVAL
 -- spool off
 -- exit;
 
+-- Direct grants to ${hdb_user} for DECODES tables referenced in triggers/packages.
+-- Oracle definer's rights PL/SQL ignores role-based privileges (ORA-01031),
+-- so HDBDBA needs direct grants in addition to DECODES_ROLE.
+GRANT SELECT, INSERT ON decodes.DATATYPE TO ${hdb_user};

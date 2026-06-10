@@ -14,8 +14,8 @@ BEGIN
        
        /* insert record into decodes.datatype table if record does not exist  */
        insert into datatype
-       select :new.datatype_id,'HDB',:new.datatype_id from dual 
-       minus select id,standard,id from datatype where standard = 'HDB';
+       select :new.datatype_id,'HDB',:new.datatype_id,null from dual 
+       minus select id,standard,id,null from datatype where standard = 'HDB';
 
     ELSIF updating THEN 
      :new.DATATYPE_ID := :old.DATATYPE_ID; 
