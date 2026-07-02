@@ -23,6 +23,14 @@ BEGIN
   FOR t IN (SELECT table_name FROM dba_tables WHERE owner = 'SYS' AND UPPER(table_name) = 'FLYWAY_SCHEMA_HISTORY') LOOP
     EXECUTE IMMEDIATE 'DROP TABLE SYS."' || t.table_name || '" CASCADE CONSTRAINTS';
   END LOOP;
+
+  -- 6. Drop HDB Tablespaces (created by V1_0_0)
+  FOR ts IN (SELECT tablespace_name FROM dba_tablespaces WHERE tablespace_name IN ('HDB_DATA', 'HDB_USER', 'HDB_IDX')) LOOP
+    EXECUTE IMMEDIATE 'DROP TABLESPACE ' || ts.tablespace_name || ' INCLUDING CONTENTS AND DATAFILES';
+  END LOOP;
+  FOR ts IN (SELECT tablespace_name FROM dba_tablespaces WHERE tablespace_name = 'HDB_TEMP') LOOP
+    EXECUTE IMMEDIATE 'DROP TABLESPACE ' || ts.tablespace_name || ' INCLUDING CONTENTS AND DATAFILES';
+  END LOOP;
 END;
 /
 exit;

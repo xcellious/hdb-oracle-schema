@@ -8,7 +8,7 @@ The database migration is managed via [Flyway](https://flywaydb.org/) (v9.22.3, 
 
 ### Key Components
 
-*   `build_flyway.sh`: A Linux-compatible bash script that reads the legacy Oracle DDL/SQL source files and compiles them into sequential Flyway version scripts (`V1_0_1__*.sql`, etc.).
+*   `build_flyway.sh`: A Linux-compatible bash script that reads the legacy Oracle DDL/SQL source files and compiles them into sequential Flyway version scripts (`V1_0_0__*.sql` through `V1_0_12__*.sql`).
 *   `flyway_migration/sql/`: The directory where Flyway looks for the compiled SQL migration scripts.
 *   `flyway_migration/conf/flyway.conf`: The configuration file containing Flyway settings and the JDBC `internal_logon=sysdba` property for SYS connectivity.
 
@@ -24,7 +24,7 @@ This is equivalent to running `sqlplus 'sys/<password> as sysdba'` and gives Fly
 
 ## Getting Started
 
-This installation process is compatible with both Windows and Linux/WSL environments.
+This installation process is compatible with both Windows and Linux environments.
 
 ### Prerequisites
 
@@ -35,7 +35,7 @@ This installation process is compatible with both Windows and Linux/WSL environm
       -e ORACLE_PWD=<your_sys_password> \
       container-registry.oracle.com/database/free:latest
     ```
-2.  **Java**: Flyway requires a Java runtime (JRE 8+). The bundled Flyway distribution in `flyway_tool/` includes its own JRE.
+2.  **Java**: Flyway requires a Java runtime (JRE 8+). The bundled Flyway distribution in `flyway_tool/` includes a **Windows JRE**. On Linux, ensure Java 8+ is installed on your system (`java -version`).
 3.  **Environment Variables**: A configured `.env` file with database credentials (see below).
 
 ### Configuration
@@ -62,28 +62,52 @@ Configuration is centralized in an environment file (`.env`) to prevent committi
 Use the provided wrapper scripts which load the `.env` file and invoke Flyway:
 
 - **Windows**: `run_flyway.bat migrate`
-- **Linux/WSL**: `./run_flyway.sh migrate`
+- **Linux**: `./run_flyway.sh migrate`
+
+> **Linux Note**: If you cloned this repository on Windows or the files have Windows line endings (`\r\n`), run `dos2unix run_flyway.sh .env` or `sed -i 's/\r$//' run_flyway.sh .env` before executing the shell script.
 
 Other useful Flyway commands:
 ```bash
 # Check migration status
-run_flyway.bat info
+run_flyway.bat info          # Windows
+./run_flyway.sh info         # Linux
 
 # Validate pending migrations without applying
-run_flyway.bat validate
+run_flyway.bat validate      # Windows
+./run_flyway.sh validate     # Linux
 
 # Repair the schema history table (e.g., after a failed migration)
-run_flyway.bat repair
+run_flyway.bat repair        # Windows
+./run_flyway.sh repair       # Linux
 ```
 
-### Tablespace Assumptions
+### Tablespaces
 
-The Oracle environment must be pre-provisioned with the underlying tablespaces required by the HDB schema. Ensure the following tablespaces exist before running the migration:
+The first migration script (`V1_0_0__Create_Tablespaces.sql`) automatically creates the required tablespaces if they do not already exist. If a tablespace already exists, the script skips it and leaves it untouched.
 
-*   **`HDB_DATA`**: Default data tablespace for the main schema.
-*   **`HDB_USER`**: Tablespace for application users and their objects.
-*   **`HDB_IDX`**: Default index tablespace.
-*   **`HDB_TEMP`**: Temporary tablespace.
+| Tablespace | Type | Default Size | Autoextend | Purpose |
+|------------|------|-------------|------------|---------|
+| `HDB_DATA` | Permanent | 50 MB | 10 MB increments, unlimited | Default data tablespace for the main schema |
+| `HDB_USER` | Permanent | 50 MB | 10 MB increments, unlimited | Tablespace for application users and their objects |
+| `HDB_IDX`  | Permanent | 50 MB | 10 MB increments, unlimited | Default index tablespace |
+| `HDB_TEMP` | Temporary | 100 MB | 20 MB increments, max 2 GB | Temporary tablespace for sort, hash join, and PGA spill operations |
+
+#### Customizing Tablespace Configuration
+
+The default sizes above are intended for **development and testing** environments. For production deployments, your DBA should pre-create these tablespaces with appropriate sizing, data file locations, and storage parameters **before** running `flyway migrate`. The migration will detect the existing tablespaces and skip creation.
+
+Example — creating tablespaces with production-grade sizing:
+```sql
+-- Permanent tablespaces (adjust paths and sizes for your environment)
+CREATE TABLESPACE HDB_DATA DATAFILE '/u01/oradata/hdb_data01.dbf' SIZE 500M AUTOEXTEND ON NEXT 100M MAXSIZE 10G;
+CREATE TABLESPACE HDB_USER DATAFILE '/u01/oradata/hdb_user01.dbf' SIZE 200M AUTOEXTEND ON NEXT 50M  MAXSIZE 5G;
+CREATE TABLESPACE HDB_IDX  DATAFILE '/u01/oradata/hdb_idx01.dbf'  SIZE 500M AUTOEXTEND ON NEXT 100M MAXSIZE 10G;
+
+-- Temporary tablespace (sized for concurrent sort/hash operations)
+CREATE TEMPORARY TABLESPACE HDB_TEMP TEMPFILE '/u01/oradata/hdb_temp01.dbf' SIZE 500M AUTOEXTEND ON NEXT 100M MAXSIZE 4G;
+```
+
+> **Tip**: `HDB_TEMP` is sized larger by default because it handles sort operations, hash joins, and temporary LOBs generated by the HDB stored procedures and complex queries. Monitor `V$TEMP_SPACE_HEADER` and `V$TEMPSEG_USAGE` in production to right-size it for your workload.
 
 ### Environmental Dependencies
 
@@ -99,18 +123,24 @@ When maintaining a local development environment, you may need to completely wip
 
 ### Full Drop and Rebuild
 
+The `flyway_drop_everything.sql` script drops all HDB users, roles, public synonyms, the Flyway history table, **and the four HDB tablespaces** (including contents and datafiles). This ensures a completely clean slate.
+
 1.  **Drop everything** — connect as SYSDBA and run the drop script:
     ```bash
+    # Linux
     docker exec -i <container> sqlplus 'sys/<password>@//localhost:1521/FREEPDB1 as sysdba' < flyway_drop_everything.sql
+
+    # Windows (PowerShell)
+    Get-Content flyway_drop_everything.sql | docker exec -i <container> sqlplus -s "sys/<password>@//localhost:1521/FREEPDB1 as sysdba"
     ```
 
 2.  **Run Flyway migrate** to rebuild from scratch:
     ```bash
-    # Linux/WSL
-    ./run_flyway.sh migrate
-
     # Windows
     run_flyway.bat migrate
+
+    # Linux
+    ./run_flyway.sh migrate
     ```
 
 
@@ -120,6 +150,7 @@ The migration scripts execute in the following order:
 
 | Script | Description |
 |--------|-------------|
+| `V1_0_0` | Create tablespaces (HDB_DATA, HDB_USER, HDB_IDX, HDB_TEMP) if they don't exist |
 | `V1_0_1` | Create roles (CZAR_ROLE, APP_ROLE, etc.) and users (HDBDBA, DECODES, CP_PROCESS, PSSWD_USER, APP_USER) |
 | `V1_0_2` | Create base tables in HDBDBA schema |
 | `V1_0_3` | Base indexes and primary/foreign keys |
@@ -141,7 +172,7 @@ The migration scripts execute in the following order:
 - The `internal_logon=sysdba` property in `flyway.conf` handles SYSDBA authentication.
 
 ### ORA-01918: user does not exist / ORA-00959: tablespace does not exist
-- Ensure the required tablespaces (`HDB_DATA`, `HDB_USER`, `HDB_IDX`, `HDB_TEMP`) are created before running migrations.
+- The `V1_0_0` migration auto-creates tablespaces, so this error should be rare. If it occurs, verify the `V1_0_0` migration ran successfully via `run_flyway.bat info`. If running against a pre-existing database where `V1_0_0` was baselined, ensure the tablespaces (`HDB_DATA`, `HDB_USER`, `HDB_IDX`, `HDB_TEMP`) exist.
 
 ### Invalid objects after migration
 - Some objects like `SENDMAIL` and `SNAPSHOT_MANAGER` depend on external packages (`UTL_MAIL`) or database links that may not exist in your environment. These are expected in a local dev setup.
@@ -159,11 +190,11 @@ hdb-oracle-schema/
 ├── README.md
 ├── build_flyway.sh                 # Compiles legacy DDL into Flyway scripts
 ├── run_flyway.bat                  # Windows Flyway wrapper
-├── run_flyway.sh                   # Linux/WSL Flyway wrapper
+├── run_flyway.sh                   # Linux Flyway wrapper
 ├── flyway_drop_everything.sql      # Full teardown script (run as SYSDBA)
 ├── flyway_migration/
 │   ├── conf/flyway.conf            # Flyway configuration
-│   └── sql/base/                   # Migration scripts (V1_0_1 through V1_0_12)
+│   └── sql/base/                   # Migration scripts (V1_0_0 through V1_0_12)
 ├── flyway_tool/                    # Bundled Flyway CLI (v9.22.3)
 ├── SCHEMA/                         # Legacy source DDL files
 ├── PROCEDURES/                     # Legacy stored procedures
