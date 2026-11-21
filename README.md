@@ -81,6 +81,21 @@ run_flyway.bat repair        # Windows
 ./run_flyway.sh repair       # Linux
 ```
 
+### Sample Seed Data (Local Dev / Test Only)
+
+After Flyway migrations (`V1_0_0` through `V1_0_12`) have completed, you can optionally populate the local database with realistic, relationally consistent sample data (Colorado River Basin sites, reference metadata, real/modeled time series, computations, alarms, and DECODES telemetry). These scripts are kept outside `flyway_migration/` so sample data is never applied by production migrations and `flyway_schema_history` remains untouched.
+
+- **Windows**:
+  ```cmd
+  database\seed\run_seed.bat --validate
+  ```
+- **Linux / macOS**:
+  ```bash
+  ./database/seed/run_seed.sh --validate
+  ```
+
+The scripts read connection settings from `.env`, are safe to rerun (idempotent), and include a standalone integrity/JOIN validation runner (`database\seed\run_validate.bat` / `./database/seed/run_validate.sh`). See [database/seed/README.md](database/seed/README.md) for full details.
+
 ### Tablespaces
 
 The first migration script (`V1_0_0__Create_Tablespaces.sql`) automatically creates the required tablespaces if they do not already exist. If a tablespace already exists, the script skips it and leaves it untouched.
@@ -195,6 +210,8 @@ hdb-oracle-schema/
 ├── flyway_migration/
 │   ├── conf/flyway.conf            # Flyway configuration
 │   └── sql/base/                   # Migration scripts (V1_0_0 through V1_0_12)
+├── database/
+│   └── seed/                       # Local dev/test sample seed & validation scripts
 ├── flyway_tool/                    # Bundled Flyway CLI (v9.22.3)
 ├── SCHEMA/                         # Legacy source DDL files
 ├── PROCEDURES/                     # Legacy stored procedures
