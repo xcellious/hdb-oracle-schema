@@ -10,7 +10,7 @@
 
 PROMPT [06] Seeding alarm groups, monitoring rules, screenings, limits, and alarm events...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 DECLARE
   v_seq_val NUMBER;

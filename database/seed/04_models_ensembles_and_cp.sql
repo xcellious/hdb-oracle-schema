@@ -13,7 +13,7 @@
 
 PROMPT [04] Seeding model runs, ensembles, TSDB groups, and computation processor metadata...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 DECLARE
   TYPE t_id_map IS TABLE OF NUMBER INDEX BY VARCHAR2(100);

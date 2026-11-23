@@ -1,7 +1,7 @@
 -- =============================================================================
--- 03_external_hydromet_mappings.sql
+-- 03_external_data_mappings.sql
 -- Populates external site/data code systems, external data sources, external
--- mappings & key-values, Hydromet reference tables, DMI unit maps, loading
+-- mappings & key-values, REF_HM_* reference tables, DMI unit maps, loading
 -- application properties, legends, CG_REF_CODES, and TSDB_PROPERTY.
 --
 -- Note: REF_EXT_SITE_DATA_MAP has FK to CP_COMPUTATION(COMPUTATION_ID), so we
@@ -10,9 +10,9 @@
 -- Here HDB_COMPUTATION_ID is nullable; we leave it NULL for raw external loads.
 -- =============================================================================
 
-PROMPT [03] Seeding external data mappings, Hydromet tables, and application metadata...
+PROMPT [03] Seeding external data mappings and application reference metadata...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 BEGIN
   populate_pk.SET_PRE_POPULATED(0);
@@ -476,7 +476,7 @@ BEGIN
 
   populate_pk.SET_PRE_POPULATED(1);
   COMMIT;
-  DBMS_OUTPUT.PUT_LINE('  [OK] External mappings, Hydromet tables, and application metadata seeded.');
+  DBMS_OUTPUT.PUT_LINE('  [OK] External data mappings and application reference metadata seeded.');
 EXCEPTION
   WHEN OTHERS THEN
     populate_pk.SET_PRE_POPULATED(1);

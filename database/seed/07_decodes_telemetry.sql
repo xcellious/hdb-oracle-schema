@@ -13,9 +13,9 @@
 --   SCHEDULE_ENTRY_STATUS, PLATFORM_STATUS, DACQ_EVENT, SERIAL_PORT_STATUS.
 --
 -- Cross-schema references:
---   PLATFORM.SITEID, PLATFORMSENSOR.SITEID, SITE_PROPERTY.SITE_ID -> HDBDBA.HDB_SITE
---   SCHEDULE_ENTRY.LOADING_APPLICATION_ID, DACQ_EVENT.LOADING_APPLICATION_ID -> HDBDBA.HDB_LOADING_APPLICATION
---   DATATYPEEQUIVALENCE links SHEF-PE / USGS codes to HDBDBA-synced HDB datatypes (IDs 1..30).
+--   PLATFORM.SITEID, PLATFORMSENSOR.SITEID, SITE_PROPERTY.SITE_ID -> ${hdb_user}.HDB_SITE
+--   SCHEDULE_ENTRY.LOADING_APPLICATION_ID, DACQ_EVENT.LOADING_APPLICATION_ID -> ${hdb_user}.HDB_LOADING_APPLICATION
+--   DATATYPEEQUIVALENCE links SHEF-PE / USGS codes to ${hdb_user}-synced HDB datatypes (IDs 1..30).
 -- =============================================================================
 
 PROMPT [07] Seeding DECODES telemetry metadata, platforms, routing specs, and acquisition logs...

@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # =============================================================================
-# run_validate.sh — Validate seeded HDB Oracle database integrity & joins
-# Reads connection settings from repository .env (never prints credentials).
+# run_validate.sh — Validate seeded HDB Oracle database integrity and joins
+# Reads connection settings and target schema (FLYWAY_PLACEHOLDERS_HDB_USER)
+# from repository .env (never prints credentials).
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,12 +21,18 @@ set -a
 source <(sed 's/\r$//' "$ENV_FILE")
 set +a
 
+HDB_USER="$(printf '%s' "${FLYWAY_PLACEHOLDERS_HDB_USER:-HDBDBA}" | tr '[:lower:]' '[:upper:]')"
+if [[ ! "$HDB_USER" =~ ^[A-Z][A-Z0-9_\$#]{0,127}$ ]]; then
+  echo "ERROR: Invalid FLYWAY_PLACEHOLDERS_HDB_USER value in .env: $HDB_USER" >&2
+  exit 1
+fi
+
 EZCONNECT="${FLYWAY_URL#jdbc:oracle:thin:@}"
 
 build_payload() {
   printf 'WHENEVER SQLERROR EXIT SQL.SQLCODE\n'
   printf 'CONNECT %s/"%s"@%s AS SYSDBA\n' "$FLYWAY_USER" "$FLYWAY_PASSWORD" "$EZCONNECT"
-  cat "$SCRIPT_DIR/validate_seed_data.sql"
+  sed "s/\${hdb_user}/${HDB_USER}/g" "$SCRIPT_DIR/validate_seed_data.sql"
   printf '\n'
 }
 
@@ -34,7 +41,7 @@ if command -v sqlplus >/dev/null 2>&1; then
 else
   CONTAINER="${ORACLE_DOCKER_CONTAINER:-$(docker ps --filter 'publish=1521' --format '{{.Names}}' | head -n 1)}"
   if [[ -z "$CONTAINER" ]]; then
-    echo "ERROR: Neither local sqlplus nor a running Oracle Docker container on port 1521 was found." >&2
+    echo "ERROR: Neither sqlplus nor a running Oracle Docker container on port 1521 was found. Install sqlplus or set ORACLE_DOCKER_CONTAINER." >&2
     exit 1
   fi
   build_payload | docker exec -i "$CONTAINER" sqlplus -s /nolog

@@ -1,13 +1,12 @@
 -- =============================================================================
 -- run_all_seed.sql
--- Master SQL*Plus entrypoint for HDB Oracle sample seed data.
+-- Master SQL*Plus script index for HDB Oracle sample seed data.
 --
--- Usage (local sqlplus from repo root):
---   sqlplus -s "sys/<password>@//localhost:1521/FREEPDB1 as sysdba" @database/seed/run_all_seed.sql
---
--- For one-command execution using .env (Docker or local sqlplus):
---   Windows: database\seed\run_seed.bat
---   Linux:   ./database/seed/run_seed.sh
+-- Note: The SQL scripts use the ${hdb_user} placeholder (matching Flyway's
+-- FLYWAY_PLACEHOLDERS_HDB_USER setting in .env). Run via the wrapper scripts
+-- so .env values and ${hdb_user} are substituted automatically:
+--   Windows:     database\seed\run_seed.bat [--validate]
+--   Linux/macOS: ./database/seed/run_seed.sh [--validate]
 -- =============================================================================
 
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
@@ -28,7 +27,7 @@ PROMPT =========================================================================
 @@00_preflight_and_prereqs.sql
 @@01_core_lookup_reference.sql
 @@02_sites_and_authorization.sql
-@@03_external_hydromet_mappings.sql
+@@03_external_data_mappings.sql
 @@04_models_ensembles_and_cp.sql
 @@05_timeseries_real_and_model.sql
 @@06_alarms_and_monitoring.sql

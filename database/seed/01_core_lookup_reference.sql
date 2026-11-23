@@ -4,12 +4,12 @@
 -- property, river, model, and method reference tables in topological order.
 --
 -- Idempotent: Uses MERGE (insert-only when not matched) with deterministic IDs
--- via HDBDBA.populate_pk.SET_PRE_POPULATED(0). Never overwrites existing data.
+-- via ${hdb_user}.populate_pk.SET_PRE_POPULATED(0). Never overwrites existing data.
 -- =============================================================================
 
 PROMPT [01] Seeding core HDB lookup and reference tables...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 DECLARE
   v_cnt NUMBER;

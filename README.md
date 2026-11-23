@@ -81,9 +81,9 @@ run_flyway.bat repair        # Windows
 ./run_flyway.sh repair       # Linux
 ```
 
-### Sample Seed Data (Local Dev / Test Only)
+### Sample Seed Data (Dev / Test Only)
 
-After Flyway migrations (`V1_0_0` through `V1_0_12`) have completed, you can optionally populate the local database with realistic, relationally consistent sample data (Colorado River Basin sites, reference metadata, real/modeled time series, computations, alarms, and DECODES telemetry). These scripts are kept outside `flyway_migration/` so sample data is never applied by production migrations and `flyway_schema_history` remains untouched.
+After Flyway migrations (`V1_0_0` through `V1_0_12`) have completed, you can optionally populate the target development/test database with realistic, relationally consistent sample data (Colorado River Basin sites, reference metadata, real/modeled time series, computations, alarms, and DECODES telemetry). These scripts are kept outside `flyway_migration/` so sample data is never applied by production migrations and `flyway_schema_history` remains untouched.
 
 - **Windows**:
   ```cmd
@@ -94,7 +94,7 @@ After Flyway migrations (`V1_0_0` through `V1_0_12`) have completed, you can opt
   ./database/seed/run_seed.sh --validate
   ```
 
-The scripts read connection settings from `.env`, are safe to rerun (idempotent), and include a standalone integrity/JOIN validation runner (`database\seed\run_validate.bat` / `./database/seed/run_validate.sh`). See [database/seed/README.md](database/seed/README.md) for full details.
+The scripts read connection settings and the target HDB schema (`FLYWAY_PLACEHOLDERS_HDB_USER`) from `.env`, are safe to rerun (idempotent), and include a standalone integrity/JOIN validation runner (`database\seed\run_validate.bat` / `./database/seed/run_validate.sh`). See [database/seed/README.md](database/seed/README.md) for full details.
 
 ### Tablespaces
 
@@ -211,7 +211,7 @@ hdb-oracle-schema/
 │   ├── conf/flyway.conf            # Flyway configuration
 │   └── sql/base/                   # Migration scripts (V1_0_0 through V1_0_12)
 ├── database/
-│   └── seed/                       # Local dev/test sample seed & validation scripts
+│   └── seed/                       # Dev/test sample seed & validation scripts
 ├── flyway_tool/                    # Bundled Flyway CLI (v9.22.3)
 ├── SCHEMA/                         # Legacy source DDL files
 ├── PROCEDURES/                     # Legacy stored procedures

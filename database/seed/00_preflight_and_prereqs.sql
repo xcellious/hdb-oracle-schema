@@ -4,8 +4,8 @@
 --
 -- Purpose:
 --   1. Verify Flyway schema migrations (through V1_0_12) completed successfully.
---   2. Verify required schemas (HDBDBA, DECODES, PSSWD_USER) exist.
---   3. Compile HDBDBA.SNAPSHOT_MANAGER package body using dynamic SQL for the 5
+--   2. Verify required schemas (${hdb_user}, DECODES, PSSWD_USER) exist.
+--   3. Compile ${hdb_user}.SNAPSHOT_MANAGER package body using dynamic SQL for the 5
 --      unused external USBR DB-link refresh calls (only if currently INVALID).
 --      This standalone master database has no remote USBR DB links, and triggers
 --      HDB_SITE_SITE_PERM and SDI_CHK_PERM invoke SNAPSHOT_MANAGER.SNAPSHOT_MODIFIED
@@ -21,6 +21,7 @@ DECLARE
   v_v12_cnt      NUMBER := 0;
   v_schema_cnt   NUMBER := 0;
   v_sm_status    VARCHAR2(30);
+  c_hdb_owner    CONSTANT VARCHAR2(128) := UPPER('${hdb_user}');
 BEGIN
   -- 1. Confirm Flyway schema history table exists and migrations succeeded
   BEGIN
@@ -48,27 +49,27 @@ BEGIN
   -- 2. Confirm target schemas exist
   SELECT COUNT(*) INTO v_schema_cnt
     FROM dba_users
-   WHERE username IN ('HDBDBA', 'DECODES', 'PSSWD_USER');
+   WHERE username IN (c_hdb_owner, 'DECODES', 'PSSWD_USER');
 
   IF v_schema_cnt < 3 THEN
     RAISE_APPLICATION_ERROR(-20904,
-      'Pre-flight failed: Expected schemas HDBDBA, DECODES, and PSSWD_USER to exist.');
+      'Pre-flight failed: Expected schemas ' || c_hdb_owner || ', DECODES, and PSSWD_USER to exist.');
   END IF;
-  DBMS_OUTPUT.PUT_LINE('  [OK] Target schemas HDBDBA, DECODES, and PSSWD_USER verified.');
+  DBMS_OUTPUT.PUT_LINE('  [OK] Target schemas ' || c_hdb_owner || ', DECODES, and PSSWD_USER verified.');
 
   -- 3. Check SNAPSHOT_MANAGER package body validity
   SELECT NVL(MAX(status), 'MISSING') INTO v_sm_status
     FROM dba_objects
-   WHERE owner = 'HDBDBA'
+   WHERE owner = c_hdb_owner
      AND object_name = 'SNAPSHOT_MANAGER'
      AND object_type = 'PACKAGE BODY';
 
   IF v_sm_status = 'INVALID' THEN
-    DBMS_OUTPUT.PUT_LINE('  [INFO] HDBDBA.SNAPSHOT_MANAGER body is INVALID (missing external USBR DB links).');
-    DBMS_OUTPUT.PUT_LINE('  [INFO] Recompiling HDBDBA.SNAPSHOT_MANAGER body with dynamic SQL for standalone DB...');
+    DBMS_OUTPUT.PUT_LINE('  [INFO] ' || c_hdb_owner || '.SNAPSHOT_MANAGER body is INVALID (missing external USBR DB links).');
+    DBMS_OUTPUT.PUT_LINE('  [INFO] Recompiling ' || c_hdb_owner || '.SNAPSHOT_MANAGER body with dynamic SQL for standalone DB...');
 
     EXECUTE IMMEDIATE q'[
-CREATE OR REPLACE PACKAGE BODY HDBDBA.SNAPSHOT_MANAGER AS
+CREATE OR REPLACE PACKAGE BODY ${hdb_user}.SNAPSHOT_MANAGER AS
 
    PROCEDURE SNAPSHOT_MODIFIED(
     P_TABLE_NAME VARCHAR2 ) IS
@@ -165,16 +166,16 @@ END SNAPSHOT_MANAGER;]';
 
     SELECT status INTO v_sm_status
       FROM dba_objects
-     WHERE owner = 'HDBDBA'
+     WHERE owner = c_hdb_owner
        AND object_name = 'SNAPSHOT_MANAGER'
        AND object_type = 'PACKAGE BODY';
 
     IF v_sm_status <> 'VALID' THEN
-      RAISE_APPLICATION_ERROR(-20905, 'Pre-flight failed: HDBDBA.SNAPSHOT_MANAGER body is still ' || v_sm_status);
+      RAISE_APPLICATION_ERROR(-20905, 'Pre-flight failed: ' || c_hdb_owner || '.SNAPSHOT_MANAGER body is still ' || v_sm_status);
     END IF;
-    DBMS_OUTPUT.PUT_LINE('  [OK] HDBDBA.SNAPSHOT_MANAGER body compiled VALID.');
+    DBMS_OUTPUT.PUT_LINE('  [OK] ' || c_hdb_owner || '.SNAPSHOT_MANAGER body compiled VALID.');
   ELSE
-    DBMS_OUTPUT.PUT_LINE('  [OK] HDBDBA.SNAPSHOT_MANAGER body is already ' || v_sm_status || '.');
+    DBMS_OUTPUT.PUT_LINE('  [OK] ' || c_hdb_owner || '.SNAPSHOT_MANAGER body is already ' || v_sm_status || '.');
   END IF;
 END;
 /

@@ -13,7 +13,7 @@
 
 PROMPT [02] Seeding sites, authorizations, site-datatypes, reservoir/gage specs, and ratings...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 DECLARE
   v_rating_id NUMBER;
@@ -821,9 +821,9 @@ BEGIN
 
   -- User Groups (REF_USER_GROUPS)
   FOR r IN (
-    SELECT 'HDBDBA' u,     'HDBDBA' g,              'Y' af FROM dual UNION ALL
-    SELECT 'HDBDBA',       'UPPER_BASIN_OPS',       'Y'    FROM dual UNION ALL
-    SELECT 'HDBDBA',       'LOWER_BASIN_OPS',       'Y'    FROM dual UNION ALL
+    SELECT UPPER('${hdb_user}') u, UPPER('${hdb_user}') g,  'Y' af FROM dual UNION ALL
+    SELECT UPPER('${hdb_user}'),   'UPPER_BASIN_OPS',       'Y'    FROM dual UNION ALL
+    SELECT UPPER('${hdb_user}'),   'LOWER_BASIN_OPS',       'Y'    FROM dual UNION ALL
     SELECT 'APP_USER',     'UPPER_BASIN_OPS',       'Y'    FROM dual UNION ALL
     SELECT 'APP_USER',     'LOWER_BASIN_OPS',       'Y'    FROM dual UNION ALL
     SELECT 'CP_PROCESS',   'COMPUTATION_PROCESSORS','Y'    FROM dual UNION ALL

@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 05_timeseries_real_and_model.sql
 -- Populates real and modeled time-series tables and statistical summaries:
---   1. Real time series loaded via native HDBDBA.MODIFY_R_BASE_RAW(..., 'N')
+--   1. Real time series loaded via native ${hdb_user}.MODIFY_R_BASE_RAW(..., 'N')
 --      which validates, standardizes dates, inserts into R_BASE, automatically
 --      merges into R_INSTANT, R_HOUR, R_DAY, R_MONTH, R_YEAR, R_WY, R_OTHER,
 --      registers CP_TS_ID, and queues active CP_COMP_TASKLIST entries!
@@ -17,7 +17,7 @@
 
 PROMPT [05] Seeding real time series (via MODIFY_R_BASE_RAW), statistical summaries, and modeled time series...
 
-ALTER SESSION SET CURRENT_SCHEMA = HDBDBA;
+ALTER SESSION SET CURRENT_SCHEMA = ${hdb_user};
 
 DECLARE
   v_edt          DATE;
